@@ -20,6 +20,5 @@ CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQ
         - [nodeHashjoin.c](./nodeHashjoin.c)
 - [ ] Disable other join operatiors to force the symmetric hash join operator.
     - Relevant Files
-        - [postgresql.conf](./postgresql.conf) 
-        
-          Usually found in the data directory. See [link](https://www.postgresql.org/docs/9.3/static/config-setting.html).e
+        - [postgresql.conf](./postgresql.conf)
+          Usually found in the data directory. See [link](https://www.postgresql.org/docs/9.3/static/config-setting.html).
