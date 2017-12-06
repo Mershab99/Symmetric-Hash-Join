@@ -1111,24 +1111,38 @@ typedef struct HashJoinTableData *HashJoinTable;
 
 typedef struct HashJoinState
 {
-	JoinState	js;				/* its first field is NodeTag */
-	List	   *hashclauses;	/* list of ExprState nodes */
-	HashJoinTable hj_HashTable;
-	uint32		hj_CurHashValue;
-	int			hj_CurBucketNo;
-	HashJoinTuple hj_CurTuple;
-	List	   *hj_OuterHashKeys;		/* list of ExprState nodes */
-	List	   *hj_InnerHashKeys;		/* list of ExprState nodes */
-	List	   *hj_HashOperators;		/* list of operator OIDs */
-	TupleTableSlot *hj_OuterTupleSlot;
-	TupleTableSlot *hj_HashTupleSlot;
-	TupleTableSlot *hj_NullInnerTupleSlot;
-	TupleTableSlot *hj_FirstOuterTupleSlot;
-	bool		hj_NeedNewOuter;
-	bool		hj_MatchedOuter;
-	bool		hj_OuterNotEmpty;
-} HashJoinState;
+    JoinState	js;				/* its first field is NodeTag */
+    List	   *hashclauses;	/* list of ExprState nodes */
+    HashJoinTable hj_OutHashTable; //CSI3130
+    HashJoinTable hj_InHashTable; //CSI3130
+    uint32		hj_OutCurHashValue; //CSI3130
+    uint32      hj_InHashValue; //CSI3130
+    int			hj_OutCurBucketNo; //CSI3130
+    int         hj_InCurBucketNo; //CSI3130
+    HashJoinTuple hj_OutCurTuple; //CSI3130
+    HashJoinTable hj_InCurTuple; //CSI3130
+    List	   *hj_OuterHashKeys;		/* list of ExprState nodes */
+    List	   *hj_InnerHashKeys;		/* list of ExprState nodes */
+    List	   *hj_HashOperators;		/* list of operator OIDs */
+    TupleTableSlot *hj_OuterTupleSlot;
+    TupleTableSlot *hj_InTupleSlot; //CSI3130
+    TupleTableSlot *hj_OutHashTupleSlot; //CSI3130
+    TupleTableSlot *hj_InHashTupleSlot; //CSI3130
+    TupleTableSlot *hj_NullInnerTupleSlot;
+    TupleTableSlot *hj_FirstOuterTupleSlot; //CSI3130
+    TupleTableSlot *hj_FirstInTupleSlot; //CSI3130
+    bool		hj_NeedNewOuter;
+    bool		hj_NeedNewIn; //CSI3130
+    bool		hj_MatchedOuter;
+    bool		hj_OuterNotEmpty;
+    bool		hj_InNotEmpty; //CSI3130
 
+    int        hj_InProbing;
+    int        hj_OutProding;
+
+    bool       hj_InFetched;
+
+} HashJoinState;
 
 /* ----------------------------------------------------------------
  *				 Materialization State Information
