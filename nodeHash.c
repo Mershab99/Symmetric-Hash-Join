@@ -41,11 +41,14 @@ static void ExecHashIncreaseNumBatches(HashJoinTable hashtable);
  *		stub for pro forma compliance
  * ----------------------------------------------------------------
  *
- * NOTE: This is the method that needs to be altered for CSI3130 project
+ * NOTE: This is the method that has been altered for CSI3130 project
  */
 TupleTableSlot *
 ExecHash(HashState *node)
 {
+    /*
+     * CSI3130
+     */
 	PlanState *outerNode;
     List *keys;
     HashJoinTable table;
