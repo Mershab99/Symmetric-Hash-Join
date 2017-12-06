@@ -1449,6 +1449,7 @@ create_hashjoin_plan(PlannerInfo *root,
 	List	   *otherclauses;
 	List	   *hashclauses;
 	HashJoin   *join_plan;
+    /* CSI3130 */
 	Hash	   *inner_hash_plan; // Renamed from hash_plan to signify that this will be the inner relation when joining
 	Hash	   *outer_hash_plan; // Added to allow for both inner and outer relations to be processed when joinng 
 
@@ -1490,14 +1491,15 @@ create_hashjoin_plan(PlannerInfo *root,
 	/*
 	 * Build the hash node and hash join node.
 	 */
+    /* CSI3130 */
 	inner_hash_plan = make_hash(inner_plan); //Renamed from hash_plan
 	outer_hash_plan = make_hash(outer_plan); // Added outer_hash_plan, Now both inner and outer relations have the hash node build
 	join_plan = make_hashjoin(tlist,
 							  joinclauses,
 							  otherclauses,
 							  hashclauses,
-							  (Plan *) outer_hash_plan,
-							  (Plan *) inner_hash_plan,
+							  (Plan *) outer_hash_plan, /*CSI3130*/
+							  (Plan *) inner_hash_plan, /*CSI3130*/
 							  best_path->jpath.jointype);
 
 	copy_path_costsize(&join_plan->join.plan, &best_path->jpath.path);
