@@ -771,6 +771,7 @@ typedef struct PlanState
 	 * Other run-time state needed by most if not all node types.
 	 */
 	TupleTableSlot *ps_OuterTupleSlot;	/* slot for current "outer" tuple */
+	TupleTableSlot *ps_InnerTupleSlot; /*CSI3130 Added for nodeHashjoin.c*/
 	TupleTableSlot *ps_ResultTupleSlot; /* slot for my result tuples */
 	ExprContext *ps_ExprContext;	/* node's expression-evaluation context */
 	ProjectionInfo *ps_ProjInfo;	/* info for doing tuple projection */
@@ -1084,10 +1085,7 @@ typedef struct MergeJoinState
 /* ----------------
  *	 HashJoinState information
  *
- *		hj_HashTable			hash table for the hashjoin
- *								(NULL if table not built yet)
- *		hj_CurHashValue			hash value for current outer tuple
- *		hj_CurBucketNo			bucket# for current outer tuple
+ *
  *		hj_CurTuple				last inner tuple matched to current outer
  *								tuple, or NULL if starting search
  *								(CurHashValue, CurBucketNo and CurTuple are
@@ -1102,6 +1100,26 @@ typedef struct MergeJoinState
  *		hj_NeedNewOuter			true if need new outer tuple on next call
  *		hj_MatchedOuter			true if found a join match for current outer
  *		hj_OuterNotEmpty		true if outer relation known not empty
+ *
+ *		~*ADDED/ALTERED FOR CSI3130*~
+ *		hj_OutHashTable			Outer hash table for hashjoin (NULL if table not built yet)
+ *		hj_InHashTable			Inner hash table for hashjoin (NULL if table not built yet)
+ *		hj_OutCurHashValue		Hash value for the current outer tuple
+ *		hj_InCurHashValue		Hash value for the current inner tuple
+ *		hj_OutCurBucketNo		bucket# for current outer tuple
+ *		hj_InCurBucketNo		bucket# for current inner tuple
+ *		hj_OutCurTuple			last outer tuple matched to current inner tuple, or NULL if starting search
+ *		hj_InCurTuple			last inner tuple matched to current outer tuple, or NULL if starting search
+ *		hj_OuterTupleSlot		tuple slot for outer tuples
+ *		hj_InTupleSlot		    tuple slot for inner tuples
+ *		hj_OutHashTupleSlot		tuple slot for Outer hashed tuples
+ *		hj_InHashTupleSlot		tuple slot for Inner hashed tuples
+ *		hj_FirstOuterTupleSlot	first tuple retrieved from outer plan
+ *		hj_FirstInTupleSlot	    first tuple retrieved from inner plan
+ *		hj_NeedNewOuter			true if need new outer tuple on next call
+ *		hj_NeedNewIn			true if need new inner tuple on next call
+ *		hj_OuterNotEmpty		true if outer relation known not empty
+ *		hj_InNotEmpty		    true if inner relation known not empty
  * ----------------
  */
 
@@ -1116,7 +1134,7 @@ typedef struct HashJoinState
     HashJoinTable hj_OutHashTable; //CSI3130
     HashJoinTable hj_InHashTable; //CSI3130
     uint32		hj_OutCurHashValue; //CSI3130
-    uint32      hj_InHashValue; //CSI3130
+    uint32      hj_InCurHashValue; //CSI3130
     int			hj_OutCurBucketNo; //CSI3130
     int         hj_InCurBucketNo; //CSI3130
     HashJoinTuple hj_OutCurTuple; //CSI3130
@@ -1137,10 +1155,10 @@ typedef struct HashJoinState
     bool		hj_OuterNotEmpty;
     bool		hj_InNotEmpty; //CSI3130
 
-    int        hj_InProbing;
-    int        hj_OutProding;
+    int        hj_InProbing;  //CSI3130
+    int        hj_OutProbing; //CSI3130
 
-    bool       hj_InFetched;
+    bool       hj_InFetched; //CSI3130
 
 } HashJoinState;
 
