@@ -6,7 +6,7 @@ CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQ
 - [x] Change optimizer so that both the inner and the outer relations are first processed by hash nodes before being processed by the hash join operator.
     - Relevant Files:
         - [createplan.c](./createplan.c)
-- [ ] Modify the hashing algorithm to support pipeline execution instead of the multi-tuple execution mode that is currently implemented (*ExecHash* Function)
+- [x] Modify the hashing algorithm to support pipeline execution instead of the multi-tuple execution mode that is currently implemented (*ExecHash* Function)
     - Relevant Files:
         - [nodeHash.c](./nodeHash.c)
 - [ ]  Disable the use of multiple batches. In other words assume that the whole hash table consists of one batch that is resident in the memory for the duration of the join processing.

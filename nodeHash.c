@@ -29,6 +29,7 @@
 #include "parser/parse_expr.h"
 #include "utils/memutils.h"
 #include "utils/lsyscache.h"
+#include "execnodes.h"
 
 
 static void ExecHashIncreaseNumBatches(HashJoinTable hashtable);
@@ -39,12 +40,48 @@ static void ExecHashIncreaseNumBatches(HashJoinTable hashtable);
  *
  *		CHANGED for CSI3130 Project
  * ----------------------------------------------------------------
+ *
+ * NOTE: This is the method that has been altered for CSI3130 project
  */
 TupleTableSlot *
 ExecHash(HashState *node)
 {
-	elog(ERROR, "Hash node does not support ExecProcNode call convention");
-	return NULL;
+    /*
+     * CSI3130
+     */
+	PlanState *outerNode;
+    List *keys;
+    HashJoinTable table;
+    TupleTableSlot *slot;
+    ExprContext *econtext;
+    uint32 val;
+
+    if (node->ps.instrument){ //Instrumentation
+        InstrStartNode(node->ps.instrument);
+    }
+
+    outerNode = outerPlanState(node); //Node's StateInfo
+    table = node->table;
+
+    keys = node->keys; //Expression contextt
+    econtext = node->ps.ps_ExprContext;
+
+    slot = ExecProcNode(outerNode); //Get all tuples, insert into table
+
+
+    if(TupIsNull(slot))
+        return NULL;
+
+    table->totalTuples += 1; //Compute hash val
+    econtext->ecxt_innertuple = slot;
+    econtext->ecxt_outertuple = slot;
+    val = ExecHashGetHashValue(table, econtext, keys);
+    ExecHashTableInsert(table, ExecFetchSlotTuple(slot), val);
+
+    if (node->ps.instrument)
+        InstrStopNodeMulti(node->ps.instrument, table->totalTuples);
+
+    return slot; //return tuple
 }
 
 /* ----------------------------------------------------------------
@@ -247,7 +284,7 @@ ExecHashTableCreate(Hash *node, List *hashOperators)
 	hashtable->curbatch = 0;
 	hashtable->nbatch_original = nbatch;
 	hashtable->nbatch_outstart = nbatch;
-	hashtable->growEnabled = true;
+	hashtable->growEnabled = false; //CSI3130
 	hashtable->totalTuples = 0;
 	hashtable->innerBatchFile = NULL;
 	hashtable->outerBatchFile = NULL;
