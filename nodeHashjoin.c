@@ -365,8 +365,8 @@ HashJoinState *
 ExecInitHashJoin(HashJoin *node, EState *estate)
 {
     HashJoinState *hjstate;
-    Plan	   *outerNode;
-    Hash	   *hashNode;
+    Hash *outHashNode; //cSI3130
+    Hash *inHashNode; //CSI3130
     List	   *lclauses;
     List	   *rclauses;
     List	   *hoperators;
@@ -406,11 +406,11 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
     /*
      * initialize child nodes
      */
-    outerNode = outerPlan(node);
-    hashNode = (Hash *) innerPlan(node);
+    outHashNode = (Hash *) outerPlanState(node); //CSI3130
+    inHashNode = (Hash *) innerPlanState(node); //CSI3130
 
-    outerPlanState(hjstate) = ExecInitNode(outerNode, estate);
-    innerPlanState(hjstate) = ExecInitNode((Plan *) hashNode, estate);
+    outerPlanState(hjstate) = ExecInitNode((Plan *) outHashNode, estate); //CSI3130
+    innerPlanState(hjstate) = ExecInitNode((Plan *) inHashNode, estate); //CSI3130
 
 #define HASHJOIN_NSLOTS 3
 
@@ -419,6 +419,7 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
      */
     ExecInitResultTupleSlot(estate, &hjstate->js.ps);
     hjstate->hj_OuterTupleSlot = ExecInitExtraTupleSlot(estate);
+    hjstate->hj_InTupleSlot = ExecInitExtraTupleSlot(estate); //CSI3130
 
     switch (node->join.jointype)
     {
@@ -427,8 +428,7 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
             break;
         case JOIN_LEFT:
             hjstate->hj_NullInnerTupleSlot =
-                    ExecInitNullTupleSlot(estate,
-                                          ExecGetResultType(innerPlanState(hjstate)));
+                    ExecInitNullTupleSlot(estate, ExecGetResultType(innerPlanState(hjstate)));
             break;
         default:
             elog(ERROR, "unrecognized join type: %d",
@@ -445,29 +445,38 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
     {
         HashState  *hashstate = (HashState *) innerPlanState(hjstate);
         TupleTableSlot *slot = hashstate->ps.ps_ResultTupleSlot;
+        hjstate->hj_InHashTupleSlot = slot;
 
-        hjstate->hj_HashTupleSlot = slot;
+        hashstate = (HashState *) outerPlanState(hjstate); //cSI3130
+        slot = hashstate->ps.ps_ResultTupleSlot; //CSi3130
+        hjstate->hj_OutHashTupleSlot = slot; //CSI3130
     }
 
     /*
      * initialize tuple type and projection info
      */
     ExecAssignResultTypeFromTL(&hjstate->js.ps);
-    ExecAssignProjectionInfo(&hjstate->js.ps, NULL);
+    ExecAssignProjectionInfo(&hjstate->js.ps);
 
-    ExecSetSlotDescriptor(hjstate->hj_OuterTupleSlot,
-                          ExecGetResultType(outerPlanState(hjstate)),
-                          false);
+    ExecSetSlotDescriptor(hjstate->hj_OuterTupleSlot, ExecGetResultType(outerPlanState(hjstate)), false);
+    ExecSetSlotDescriptor(hjstate->hj_InTupleSlot, ExecGetResultType(innerPlanState(hjstate)), false); //CSI3130
 
     /*
      * initialize hash-specific info
      */
-    hjstate->hj_HashTable = NULL;
+    hjstate->hj_InHashTable = NULL; //cSI3130
     hjstate->hj_FirstOuterTupleSlot = NULL;
+    hjstate->hj_OutHashTable = NULL; //cSI3130
+    hjstate->hj_FirstInTupleSlot = NULL; //CSI3130
+
 
     hjstate->hj_CurHashValue = 0;
     hjstate->hj_CurBucketNo = 0;
     hjstate->hj_CurTuple = NULL;
+
+    hjstate->hj_OutCurHashValue = 0; //cSI3130
+    hjstate->hj_OutCurBucketNo = 0; //cSI3130
+    hjstate->hj_OutCurTuple = 0; //cSI3130
 
     /*
      * Deconstruct the hash clauses into outer and inner argument values, so
@@ -494,13 +503,17 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
     hjstate->hj_InnerHashKeys = rclauses;
     hjstate->hj_HashOperators = hoperators;
     /* child Hash node needs to evaluate inner hash keys, too */
-    ((HashState *) innerPlanState(hjstate))->hashkeys = rclauses;
+    ((HashState *) outerPlanState(hjstate))->hashkeys = rclauses; //CSI3130
 
     hjstate->js.ps.ps_OuterTupleSlot = NULL;
-    hjstate->js.ps.ps_TupFromTlist = false;
+    hjstate->js.ps.ps_InnerTupleSlot = NULL; //csI3130
     hjstate->hj_NeedNewOuter = true;
-    hjstate->hj_MatchedOuter = false;
-    hjstate->hj_OuterNotEmpty = false;
+    hjstate->hj_NeedNewIn = true; //cSI3130
+    hjstate->hj_inExauhsted = false; //cSI3130
+    hjstate->hj_outExauhsted = false; //CSI3130
+    hjstate->hj_InProbing = 0; //cSI3130
+    hjstate->hj_OutProbing = 0; //cSI3130
+    hjstate->hj_InFetched = true; //cSI3130
 
     return hjstate;
 }
