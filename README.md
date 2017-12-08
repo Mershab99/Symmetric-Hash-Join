@@ -12,7 +12,7 @@ CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQ
 - [ ]  Disable the use of multiple batches. In other words assume that the whole hash table consists of one batch that is resident in the memory for the duration of the join processing.
     - Relevant Files:
         - [nodeHashjoin.c](./nodeHashjoin.c)
-- [ ] Modify the structure of *HashJoinState* to support the symmetric hash join algorithm. Replicate the existing structures to support bi-directional probing.
+- [x] Modify the structure of *HashJoinState* to support the symmetric hash join algorithm. Replicate the existing structures to support bi-directional probing.
     - Relevant Files:
         - [execnodes.h](./execnodes.h)
 - [ ] Replace the hash join algorithm with the symmetric hash join algorithm. After completing the join operation, print the number of resulting tuples that were found by probing the inner hash table and outer has tables repsectively.
