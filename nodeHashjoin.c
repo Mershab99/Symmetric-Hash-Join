@@ -632,129 +632,15 @@ ExecHashJoinOuterGetTuple(PlanState *outerNode,
  *
  * Returns the number of the new batch (1..nbatch-1), or nbatch if no more.
  * We will never return a batch number that has an empty outer batch file.
+ *
+ * CSI3130 method to return 0, based on requirement of the assignment: "Disable the use of multiple batches.
+ * In other words assume that the whole hash table consists of one batch that is resident in the memory for
+ * the duration of the join processing."
  */
 static int
 ExecHashJoinNewBatch(HashJoinState *hjstate)
 {
-    HashJoinTable hashtable = hjstate->hj_HashTable;
-    int			nbatch;
-    int			curbatch;
-    BufFile    *innerFile;
-    TupleTableSlot *slot;
-    uint32		hashvalue;
-
-    start_over:
-    nbatch = hashtable->nbatch;
-    curbatch = hashtable->curbatch;
-
-    if (curbatch > 0)
-    {
-        /*
-         * We no longer need the previous outer batch file; close it right
-         * away to free disk space.
-         */
-        if (hashtable->outerBatchFile[curbatch])
-            BufFileClose(hashtable->outerBatchFile[curbatch]);
-        hashtable->outerBatchFile[curbatch] = NULL;
-    }
-
-    /*
-     * We can always skip over any batches that are completely empty on both
-     * sides.  We can sometimes skip over batches that are empty on only one
-     * side, but there are exceptions:
-     *
-     * 1. In a LEFT JOIN, we have to process outer batches even if the inner
-     * batch is empty.
-     *
-     * 2. If we have increased nbatch since the initial estimate, we have to
-     * scan inner batches since they might contain tuples that need to be
-     * reassigned to later inner batches.
-     *
-     * 3. Similarly, if we have increased nbatch since starting the outer
-     * scan, we have to rescan outer batches in case they contain tuples that
-     * need to be reassigned.
-     */
-    curbatch++;
-    while (curbatch < nbatch &&
-           (hashtable->outerBatchFile[curbatch] == NULL ||
-            hashtable->innerBatchFile[curbatch] == NULL))
-    {
-        if (hashtable->outerBatchFile[curbatch] &&
-            hjstate->js.jointype == JOIN_LEFT)
-            break;				/* must process due to rule 1 */
-        if (hashtable->innerBatchFile[curbatch] &&
-            nbatch != hashtable->nbatch_original)
-            break;				/* must process due to rule 2 */
-        if (hashtable->outerBatchFile[curbatch] &&
-            nbatch != hashtable->nbatch_outstart)
-            break;				/* must process due to rule 3 */
-        /* We can ignore this batch. */
-        /* Release associated temp files right away. */
-        if (hashtable->innerBatchFile[curbatch])
-            BufFileClose(hashtable->innerBatchFile[curbatch]);
-        hashtable->innerBatchFile[curbatch] = NULL;
-        if (hashtable->outerBatchFile[curbatch])
-            BufFileClose(hashtable->outerBatchFile[curbatch]);
-        hashtable->outerBatchFile[curbatch] = NULL;
-        curbatch++;
-    }
-
-    if (curbatch >= nbatch)
-        return curbatch;		/* no more batches */
-
-    hashtable->curbatch = curbatch;
-
-    /*
-     * Reload the hash table with the new inner batch (which could be empty)
-     */
-    ExecHashTableReset(hashtable);
-
-    innerFile = hashtable->innerBatchFile[curbatch];
-
-    if (innerFile != NULL)
-    {
-        if (BufFileSeek(innerFile, 0, 0L, SEEK_SET))
-            ereport(ERROR,
-                    (errcode_for_file_access(),
-                            errmsg("could not rewind hash-join temporary file: %m")));
-
-        while ((slot = ExecHashJoinGetSavedTuple(hjstate,
-                                                 innerFile,
-                                                 &hashvalue,
-                                                 hjstate->hj_HashTupleSlot)))
-        {
-            /*
-             * NOTE: some tuples may be sent to future batches.  Also, it is
-             * possible for hashtable->nbatch to be increased here!
-             */
-            ExecHashTableInsert(hashtable,
-                                ExecFetchSlotTuple(slot),
-                                hashvalue);
-        }
-
-        /*
-         * after we build the hash table, the inner batch file is no longer
-         * needed
-         */
-        BufFileClose(innerFile);
-        hashtable->innerBatchFile[curbatch] = NULL;
-    }
-
-    /*
-     * If there's no outer batch file, advance to next batch.
-     */
-    if (hashtable->outerBatchFile[curbatch] == NULL)
-        goto start_over;
-
-    /*
-     * Rewind outer batch file, so that we can start reading it.
-     */
-    if (BufFileSeek(hashtable->outerBatchFile[curbatch], 0, 0L, SEEK_SET))
-        ereport(ERROR,
-                (errcode_for_file_access(),
-                        errmsg("could not rewind hash-join temporary file: %m")));
-
-    return curbatch;
+    return 0;
 }
 
 /*
