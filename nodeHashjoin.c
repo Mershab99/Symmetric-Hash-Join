@@ -21,7 +21,9 @@
 #include "executor/nodeHashjoin.h"
 #include "optimizer/clauses.h"
 #include "utils/memutils.h"
-#include "execnodes.h"
+#include "nodes/execnodes.h"
+#include "../../include/nodes/execnodes.h"
+#include "../../include/executor/hashjoin.h"
 
 
 static TupleTableSlot *ExecHashJoinOuterGetTuple(PlanState *outerNode,
@@ -69,9 +71,9 @@ ExecHashJoin(HashJoinState *node)
     estate = node->js.ps.state;
     joinqual = node->js.joinqual;
     otherqual = node->js.ps.qual;
-    inhashNode = (HashState *) innerPlanState(node);
-    outhashNode = (HashState *) outerPlanState(node); //CSI3130
-    outerNode = outerPlanState(node);
+    inHashNode = (HashState *) innerPlanState(node);
+    outHashNode = (HashState *) outerPlanState(node); //CSI3130
+
 
     /*
      * get information from HashJoin state
@@ -456,7 +458,7 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
      * initialize tuple type and projection info
      */
     ExecAssignResultTypeFromTL(&hjstate->js.ps);
-    ExecAssignProjectionInfo(&hjstate->js.ps);
+    ExecAssignProjectionInfo(&hjstate->js.ps, NULL);
 
     ExecSetSlotDescriptor(hjstate->hj_OuterTupleSlot, ExecGetResultType(outerPlanState(hjstate)), false);
     ExecSetSlotDescriptor(hjstate->hj_InTupleSlot, ExecGetResultType(innerPlanState(hjstate)), false); //CSI3130
@@ -765,9 +767,9 @@ ExecReScanHashJoin(HashJoinState *node, ExprContext *exprCtxt)
      * inner subnode, then we can just re-use the existing hash table without
      * rebuilding it.
      */
-    if (node->hj_HashTable != NULL)
+    if (node->hj_InHashTable!= NULL)
     {
-        if (node->hj_HashTable->nbatch == 1 &&
+        if (node->hj_InHashTable->nbatch == 1 &&
             ((PlanState *) node)->righttree->chgParam == NULL)
         {
             /*
@@ -788,8 +790,8 @@ ExecReScanHashJoin(HashJoinState *node, ExprContext *exprCtxt)
         else
         {
             /* must destroy and rebuild hash table */
-            ExecHashTableDestroy(node->hj_HashTable);
-            node->hj_HashTable = NULL;
+            ExecHashTableDestroy(node->hj_InHashTable);
+            node->hj_InHashTable = NULL;
 
             /*
              * if chgParam of subnode is not null then plan will be re-scanned
