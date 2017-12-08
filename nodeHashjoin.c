@@ -538,10 +538,16 @@ ExecEndHashJoin(HashJoinState *node)
     /*
      * Free hash table
      */
-    if (node->hj_HashTable)
+    if (node->hj_InHashTable) //cSI3130
     {
-        ExecHashTableDestroy(node->hj_HashTable);
-        node->hj_HashTable = NULL;
+        ExecHashTableDestroy(node->hj_InHashTable); //csi3130
+        node->hj_InHashTable = NULL; //cSi3130
+    }
+
+    if (node->hj_OutHashTable) //csI3130
+    {
+        ExecHashTableDestroy(node->hj_OutHashTable); //csi3130
+        node->hj_OutHashTable = NULL; //cSi3130
     }
 
     /*
@@ -552,9 +558,12 @@ ExecEndHashJoin(HashJoinState *node)
     /*
      * clean out the tuple table
      */
-    ExecClearTuple(node->js.ps.ps_ResultTupleSlot);
+    ExecClearTuple(node->js.ps.ps_InnerTupleSlot); //CSI3130
+    ExecClearTuple(node->js.ps.ps_OuterTupleSlot); //CSI3130
     ExecClearTuple(node->hj_OuterTupleSlot);
-    ExecClearTuple(node->hj_HashTupleSlot);
+    ExecClearTuple(node->hj_InTupleSlot); //CSI3130
+    ExecClearTuple(node->hj_InHashTupleSlot); //CSI3130
+    ExecClearTuple(node->hj_OutHashTupleSlot); //CSI3130
 
     /*
      * clean up subtrees
@@ -579,7 +588,7 @@ ExecHashJoinOuterGetTuple(PlanState *outerNode,
                           HashJoinState *hjstate,
                           uint32 *hashvalue)
 {
-    HashJoinTable hashtable = hjstate->hj_HashTable;
+    HashJoinTable hashtable = hjstate->hj_InHashTable; //CSI3130
     int			curbatch = hashtable->curbatch;
     TupleTableSlot *slot;
 
@@ -607,7 +616,7 @@ ExecHashJoinOuterGetTuple(PlanState *outerNode,
                                               hjstate->hj_OuterHashKeys);
 
             /* remember outer relation is not empty for possible rescan */
-            hjstate->hj_OuterNotEmpty = true;
+            //hjstate->hj_OuterNotEmpty = true; //CSI3130 - not needed?
 
             return slot;
         }
