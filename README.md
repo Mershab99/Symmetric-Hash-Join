@@ -1,6 +1,12 @@
 # Symmetric-Hash-Join
 CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQL 8.1.7
 
+## Group Members
+- Talaal Mirza - 8166986
+- Alex Curtis  - 8247890
+- Jacques Lafontaine - 1972887
+
+## Setup Instructions
 1. Download postgres v8.1.7 from source.
     * Download from [the website](https://ftp.postgresql.org/pub/source/v8.1.7/postgresql-8.1.7.tar.gz)
 2. Unpack the archive with the command: `$: tar -xvzf postgresql-8.1.7.tar.gz`
