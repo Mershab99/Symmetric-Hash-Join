@@ -488,9 +488,9 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
      * of the hash operator OIDs, in preparation for looking up the hash
      * functions to use.
      */
-    lclauses = NIL;
-    rclauses = NIL;
-    hoperators = NIL;
+    lclauses = NULL;
+    rclauses = NULL;
+    hoperators = NULL;
     foreach(l, hjstate->hashclauses)
     {
         FuncExprState *fstate = (FuncExprState *) lfirst(l);
@@ -508,6 +508,7 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
     hjstate->hj_HashOperators = hoperators;
     /* child Hash node needs to evaluate inner hash keys, too */
     ((HashState *) outerPlanState(hjstate))->hashkeys = rclauses; //CSI3130
+    ((HashState *) innerPlanState(hjstate))->hashkeys = lclauses; //CSI3130
 
     hjstate->js.ps.ps_OuterTupleSlot = NULL;
     hjstate->js.ps.ps_InnerTupleSlot = NULL; //csI3130
