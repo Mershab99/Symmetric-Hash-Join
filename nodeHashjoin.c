@@ -480,7 +480,7 @@ ExecInitHashJoin(HashJoin *node, EState *estate)
 
     hjstate->hj_OutCurHashValue = 0; //cSI3130
     hjstate->hj_OutCurBucketNo = 0; //cSI3130
-    hjstate->hj_OutCurTuple = 0; //cSI3130
+    hjstate->hj_OutCurTuple = NULL; //cSI3130
 
     /*
      * Deconstruct the hash clauses into outer and inner argument values, so
