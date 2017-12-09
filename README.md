@@ -22,7 +22,7 @@ CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQ
 11. If the previous worked `$ ls -ld /usr/local/pgsql/data` will show the directory with the user postgres' ownership
 12. `$ su - postgres` or login as the user postgres
 13. `$ /usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data` to initialize postgreSQL data directory
-14. `$ `usr/local/pgsql/bin/postmaster -D /usr/local/pgsql/data >logfile 2>&1 &` to start the db. Try `$ cat logfile` to see if it started.
+14. `$ /usr/local/pgsql/bin/postmaster -D /usr/local/pgsql/data >logfile 2>&1 &` to start the db. Try `$ cat logfile` to see if it started.
 15. `$ /usr/local/pgsql/bin/createdb test` to create a schema with the name test
 16. `$ /usr/local/pgsql/bin/psql test`to start the PostgreSQL terminal in the schema test.
 
