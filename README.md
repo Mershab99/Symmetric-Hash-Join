@@ -1,21 +1,19 @@
 # Symmetric-Hash-Join
-CSI3130 Final project. change hash join to Symmetric hash join with in PostgreSQL 8.1.7
+CSI3130 Convert hash join to Symmetric hash-join in PostgreSQL version 8.1.7
+Mershab Issadien
+300027272
 
-## Group Members
-- Talaal Mirza - 8166986
-- Alex Curtis  - 8247890
-- Jacques Lafontaine - 1972887
 
 ## Setup Instructions
-1. Download postgres v8.1.7 from source.
-    * Download from [the website](https://ftp.postgresql.org/pub/source/v8.1.7/postgresql-8.1.7.tar.gz)
-2. Unpack the archive with the command: `$: tar -xvzf postgresql-8.1.7.tar.gz`
+1. Download postgres v8.1.7 source.
+    * Download link [here](https://ftp.postgresql.org/pub/source/v8.1.7/postgresql-8.1.7.tar.gz)
+2. Unpack the archive: `$: tar -xvzf postgresql-8.1.7.tar.gz`
 3. Replace the provided files with the ones in postgresql's source code
-    * [createplan.c](./createplan.c) goes in /postgresql-8.1.7/src/backend/optimizer/plan/
-    * [nodeHash.c](./nodeHash.c) goes in /postgresql-8.1.7/src/backend/executor/
-    * [nodeHashjoin.c](./nodeHashjoin.c) goes in /postgresql-8.1.7/src/backend/executor/
-    * [execnodes.h](./execnodes.h) goes in /postgresql-8.1.7src/include/nodes/
-4. Change directory to /postgresql-8.1.7/
+    * [execnodes.h](./execnodes.h) -> /postgresql-8.1.7/src/include/nodes/
+    * [createplan.c](./createplan.c) -> /postgresql-8.1.7/src/backend/optimizer/plan/
+    * [nodeHash.c](./nodeHash.c) -> /postgresql-8.1.7/src/backend/executor/
+    * [nodeHashjoin.c](./nodeHashjoin.c) -> /postgresql-8.1.7/src/backend/executor/
+4. Change directory to /postgresql-8.1.7/ 'cd postgresql-8.1.7/'
 5. Install gcc 4.7, zlib1g, zlib1g-dev, libreadline6 and libreadline6-dev if not done already.
     * `$ sudo apt-get install gcc-4.7`
     * `$ sudo apt-get install zlib1g zlib1g-dev`
